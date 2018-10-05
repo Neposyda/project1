@@ -2,7 +2,7 @@ class User:
 
     def __init__ (self, name, password):
         self.name = name
-        self.passord = password
+        self.password = password
 
     def name(self):
         return self.name
@@ -12,6 +12,3 @@ class User:
 
 
 
-class Users:
-
-    pass

@@ -1,4 +1,5 @@
 import os
+import requests
 
 from flask import Flask, session, render_template, request
 from flask_session import Session
@@ -25,12 +26,6 @@ db = scoped_session(sessionmaker(bind=engine))
 
 @app.route("/", methods=["GET"])
 def index():
-    # Відкриваєм сторінку з описом ресурсу і даєм можливість перейти на ЛОГІН си РЕЄСТРАЦІЯ
-    # Відкрити форму для введення логіну ЛОГІН
-    # - перевірка при логінування, якщо користувач відсутній в базі перенести на форма РЕЄСТРАЦІЯ
-    # - після реєстрації повернути на ЛОГІН
-    # Залогінилися
-    # виставити кнопку вихід, щоб рзлогінитися-
     # - зберігати в seans дані користувача чи достатньо ID
     #
     #ПОШУК КНИГ - пошук по назві, по ісбн, по автору
@@ -42,24 +37,106 @@ def index():
     # -рік публікації
     # -номер ісбн
     # - ВІДГУКИ які є
+    session['status_log'] = 0
+    session['status_reg'] = 0
     return render_template('index.html')
 
 
-@app.route("/login", methods=["GET", "POST"])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    session.clear()
+    if session['status_log'] == 0:
+        session['status_log'] = 1
+        return render_template('login.html')
+    #perev chy vvely name
     if request.method == "POST":
-        pass
+        if request.form.get('username'):
+            session['username'] = request.form.get('username')
+        else:
+            return render_template('login.html')
     else:
-        return render_template('login.html', button_text='Submit')
+        return render_template('login.html')
+    #perev chy e user i
+    if db.execute("SELECT * FROM users WHERE name= :name", {"name": session['username']}).rowcount == 0:
+        #session['status_log'] = 1
+        session['status_reg'] = 1
+        return registr()
+    else:
+        # loginymsa
+        db_user = db.execute("SELECT * FROM users WHERE name= :name", {"name": session['username']}).first()
+        session['password']=request.form.get('password')
+        if db_user['password'] == session['password']:
+            session['status_log'] = 3
+            session['books'] =  db.execute("SELECT * FROM books")
+            return search()
+        else:
+            return render_template('login.html')
 
 
 @app.route('/logout')
 def logout():
     session.clear()
-    return render_template('index.html')
+    return index()
 
 
-@app.route ('/registration')
-def registration():
-    return "render_template ('registration.html')"
+@app.route('/registr', methods=['GET', 'POST'])
+def registr():
+    if session['status_reg'] == 0:
+        session['status_reg'] = 1
+        return registr()
+    #perev formu
+    try:
+        if not request.form.get('username'):
+            return render_template("registr.html", confirm="Заповніть поле з іменем коритувача")
+        session['username'] = request.form.get('username')
+        if not request.form.get('password'):
+            return render_template("registr.html", username=session['username'], confirm='Введіть пароль')
+        session['password'] = request.form.get('password')
+        if not request.form.get('password2'):
+            return render_template('registr.html', username=session['username'], confirm='Введіть пароль повторно')
+        if request.form.get('password') != request.form.get('password2'):
+            return render_template('registr.html', username=session['username'], confirm='Паролі не співпадають')
+    except ValueError:
+        return index()
+    #zapovn USERS
+    #perev chy kor dze reestr
+    if db.execute("SELECT * FROM users WHERE name= :name", {"name": session['username']}).rowcount > 0:
+        return login()
+    db.execute("INSERT INTO users (name, password) VALUES (:name, :password)",
+               {"name": session['username'], "password": session['password']})
+    db.commit()
+    session['status_reg'] = 3
+    return login()
+
+
+@app.route("/search")
+def search():
+    str_sql = "SELECT * FROM books WHERE "
+    count_likes = 0
+    if request.form.get('isbn'):
+        str_sql += "isbn LIKE '%" + request.form.get('isbn')+"%'"
+        count_likes+=1
+    if request.form.get('name'):
+        if count_likes > 0:
+            str_sql += "AND "
+        count_likes += 1
+        str_sql += "title LIKE '%" + request.form.get('title') + "%'"
+    if request.form.get('name'):
+        if count_likes > 0:
+            str_sql += " AND "
+        str_sql += "title LIKE '%" + request.form.get('title') + "%'"
+    try:
+        list_books = db.execute(str_sql)
+        render_template('books.html', listbooks=list_books)
+    except ValueError:
+        return render_template('books.html')
+
+
+@app.route('/book/<string:isbn>')
+def book(isbn):
+
+    book = db.execute("SELECT ")
+
+
+    #res = requests.get("https://www.goodreads.com/book/review_counts.json",
+    #                  params={"key": "ekllRCatW1xsWqwHp9nrg", "isbns": "9781632168146"})
+    #print(res.json())

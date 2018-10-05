@@ -1,8 +1,9 @@
 {% extends "layout.html" %}
 {% block title %} Log in{% endblock %}
-{% block body %}
+{% block main %}
     <div class="container">
         <h1>Заповніть форму:</h1>
+        <!--<form action="{{ url_for('login') }}" method="post"> -->
         <form action="/login" method="post">
             <fieldset>
                 <div class="form-group">
