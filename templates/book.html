@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+{% block title %} Book{% endblock %}
+{% block main %}
+    <div class="container">
+<!--
+        {% if session.search == 2 %}
+            <h1>Вибрано:.</h1>
+            <ul>
+                {% for book in listbooks %}
+                <li><a href="{{ url_for('book',isbn=book.isbn) }}">
+                    {{ book.id }} | {{ book.isbn }} | {{ book.title }} | {{ book.author }} | {{ book.yeahr }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+-->
+    <h1>Детальніше про книгу:</h1>
+    <ul>
+        <li>ISBN:   {{ book.isbn }}</li>
+        <li>Назва:  {{ book.title }}</li>
+        <li>Автор:  {{ book.author }}</li>
+        <li>Рік:    {{ book.isbn }}</li>
+    </ul>
+    <h1>Додатково з GoodReads:</h1>
+    <ul>
+        <li>Середній рейтинг: {{ book.average_score }}</li>
+        <li>Кількість оцінок: {{ book.review_count }}</li>
+    </ul>>
+    </div>
+{% endblock %}
