@@ -13,4 +13,6 @@ https://www.goodreads.com/api/keys
 key: ekllRCatW1xsWqwHp9nrg
 secret: Q7xfiBUuv0Ztf79iMLsPs7qIQOnKjeznzXJP76YzYttps://www.goodreads.com/api/keys
 
+isbn: 0441017835
+
 

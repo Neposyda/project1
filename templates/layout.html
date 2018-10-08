@@ -6,7 +6,7 @@
     <!-- documentation at http://getbootstrap.com/, alternative themes at https://www.bootstrapcdn.com/bootswatch/ -->
      <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous"> -->
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"/>
-    <link href="styles.css" rel="stylesheet"/>
+    <link href="/static/styles.css" rel="stylesheet"/>
     <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <title>cs50 project1-{%  block title %}{% endblock %}</title>
@@ -22,17 +22,18 @@
                             <span class="icon-bar"></span>
                             <span class="icon-bar"></span>
                         </button>
-                        <a class="navbar-brand" href="/"><span class="blue">C</span><span class="red">$</span><span class="yellow">5</span><span class="green">1</span><span class="red">project1</span></a>
+                        <a class="navbar-brand" href="/"><span class="blue">C</span><span class="red">S</span><span class="yellow">5</span><span class="green">0</span><span class="red"> 2018 project1</span></a>
                     </div>
                     <div class="collapse navbar-collapse" id="navbar">
                             <ul class="nav navbar-nav navbar-right">
                                 {% if session.status_log <3 %}
                                     {% if session.status_reg<3 %}
-                                        <li><a href="/registr">Register</a>{{ session.status_log}}</li>
+                                        <li><a href="/registr">Реєстація</a>{{ session.status_log}}</li>
                                     {% endif %}
-                                    <li><a href="/login">Log In</a></li>
+                                    <li><a href="/login">Вхід</a></li>
                                 {% else %}
-                                    <li><a href="/logout">Log Out</a>></li>
+                                    <li><a href="/search">Пошук</a></li>
+                                    <li><a href="/logout">Вихід</a></li>
                                 {% endif %}
                             </ul>
                     </div>

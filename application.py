@@ -1,7 +1,7 @@
 import os
 import requests
 
-from flask import Flask, session, render_template, request
+from flask import Flask, session, render_template, request, jsonify
 from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -66,7 +66,7 @@ def login():
         session['password']=request.form.get('password')
         if db_user['password'] == session['password']:
             session['status_log'] = 3
-            session['books'] =  db.execute("SELECT * FROM books")
+            session['search'] = 0
             return search()
         else:
             return render_template('login.html')
@@ -108,35 +108,52 @@ def registr():
     return login()
 
 
-@app.route("/search")
+@app.route("/search", methods=['get', 'post'])
 def search():
+    if session['search'] != 1:
+        session['search'] = 1
+        return render_template('search.html')
     str_sql = "SELECT * FROM books WHERE "
     count_likes = 0
     if request.form.get('isbn'):
         str_sql += "isbn LIKE '%" + request.form.get('isbn')+"%'"
-        count_likes+=1
-    if request.form.get('name'):
+        count_likes += 1
+    elif request.form.get('title'):
         if count_likes > 0:
             str_sql += "AND "
         count_likes += 1
         str_sql += "title LIKE '%" + request.form.get('title') + "%'"
-    if request.form.get('name'):
+    elif request.form.get('author'):
         if count_likes > 0:
             str_sql += " AND "
-        str_sql += "title LIKE '%" + request.form.get('title') + "%'"
+        str_sql += "author LIKE '%" + request.form.get('author') + "%'"
+    else:
+        session['search'] = 0
+        return search()
     try:
+        session['search'] = 2
         list_books = db.execute(str_sql)
-        render_template('books.html', listbooks=list_books)
+        return render_template('search.html', listbooks=list_books)
     except ValueError:
-        return render_template('books.html')
+        session['search'] = 1
+        return render_template('search.html')
 
 
-@app.route('/book/<string:isbn>')
+@app.route('/API/<int:isbn>')
+def inf_json(isbn):
+    book_j = db.execute("SELECT * FROM book WHERE isbn= :isbn",{"isbn": isbn})
+    qoodread = requests.get("https://www.goodreads.com/book/review_counts.json", params={"key": "ekllRCatW1xsWqwHp9nrg", "isbns": isbn}).json()
+    return jsonify({
+        "title": book_j['title'],
+        "author": book_j['author'],
+        "year": book_j['year'],
+        "isbn": book_j['isbn'],
+        "review_count": qoodread['review_count'],
+        "average_score": qoodread['average_score']
+    })
+
+
+@app.route('/book/<int:isbn>')
 def book(isbn):
-
-    book = db.execute("SELECT ")
-
-
-    #res = requests.get("https://www.goodreads.com/book/review_counts.json",
-    #                  params={"key": "ekllRCatW1xsWqwHp9nrg", "isbns": "9781632168146"})
-    #print(res.json())
+    book_app = inf_json(isbn)
+    return render_template("book.html", book=book_app)
