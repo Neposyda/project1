@@ -1,5 +1,6 @@
 import os
 import requests
+from datetime import datetime
 
 from flask import Flask, session, render_template, request, jsonify
 from flask_session import Session
@@ -27,15 +28,8 @@ db = scoped_session(sessionmaker(bind=engine))
 @app.route("/", methods=["GET"])
 def index():
     # - зберігати в seans дані користувача чи достатньо ID
-    #
-    #ПОШУК КНИГ - пошук по назві, по ісбн, по автору
     # по замовчування чи без параметра виводити перші 20 книг,
     # організувати перегляд по 20 книг, напр
-    # Вибрали і переходим\відкриваєм тут же на сторінку ДАНІ ПРО КНИГУ
-    # -заголовок
-    # -автор
-    # -рік публікації
-    # -номер ісбн
     # - ВІДГУКИ які є
     session['status_log'] = 0
     session['status_reg'] = 0
@@ -67,6 +61,7 @@ def login():
         if db_user['password'] == session['password']:
             session['status_log'] = 3
             session['search'] = 0
+            session['user_id']=db_user['id']
             return search()
         else:
             return render_template('login.html')
@@ -113,20 +108,22 @@ def search():
     if session['search'] != 1:
         session['search'] = 1
         return render_template('search.html')
-    str_sql = "SELECT * FROM books WHERE "
+    str_sql = ""
     count_likes = 0
     if request.form.get('isbn'):
         str_sql += "isbn LIKE '%" + request.form.get('isbn')+"%'"
         count_likes += 1
-    elif request.form.get('title'):
+    if request.form.get('title'):
         if count_likes > 0:
             str_sql += "AND "
         count_likes += 1
         str_sql += "title LIKE '%" + request.form.get('title') + "%'"
-    elif request.form.get('author'):
+    if request.form.get('author'):
         if count_likes > 0:
             str_sql += " AND "
         str_sql += "author LIKE '%" + request.form.get('author') + "%'"
+    if str_sql != "":
+        str_sql="SELECT * FROM books WHERE "+str_sql
     else:
         session['search'] = 0
         return search()
@@ -139,21 +136,44 @@ def search():
         return render_template('search.html')
 
 
-@app.route('/API/<int:isbn>')
-def inf_json(isbn):
-    book_j = db.execute("SELECT * FROM book WHERE isbn= :isbn",{"isbn": isbn})
+@app.route('/API/<string:isbn>')
+def str_json(isbn):
+    book_j = db.execute("SELECT * FROM books WHERE isbn= :isbn",{"isbn": isbn}).first()
+    session['book_id'] = book_j['id']
     qoodread = requests.get("https://www.goodreads.com/book/review_counts.json", params={"key": "ekllRCatW1xsWqwHp9nrg", "isbns": isbn}).json()
     return jsonify({
         "title": book_j['title'],
         "author": book_j['author'],
         "year": book_j['year'],
         "isbn": book_j['isbn'],
-        "review_count": qoodread['review_count'],
-        "average_score": qoodread['average_score']
+        "review_count": qoodread['books'][0]['reviews_count'],
+        "average_score": qoodread['books'][0]['average_rating']
     })
 
 
-@app.route('/book/<int:isbn>')
+@app.route('/book/<string:isbn>', methods=['get'])
 def book(isbn):
-    book_app = inf_json(isbn)
+    #informaciya pro knyzky
+    session['book_id'] = ""
+    session['book_isbn'] = isbn
+    book_app = str_json(isbn).json
+    #vidguky
+    reviews_app = db.execute("SELECT * FROM reviews WHERE book_id= :bookid", {'bookid': session['book_id']})
+    session['check_user'] = False
+    if db.execute("SELECT id FROM reviews WHERE user_id= :userid AND book_id= :bookid",
+                  {"userid": session['user_id'], "bookid": session['book_id']}).rowcount == 0:
+        session['check_user'] = True
+    if reviews_app.rowcount != 0:
+        return render_template("book.html", book=book_app, reviews=reviews_app)
     return render_template("book.html", book=book_app)
+
+
+@app.route('/review_add', methods=['post'])
+def reviews_add():
+    if request.form.get('review_text'):
+       db.execute("INSERT INTO reviews (user_id, content, date_time, book_id) "
+                  "VALUES (:user_id, :content, :date_time , :book_id)",
+                  {"user_id": session['user_id'], "content": request.form.get('review_text'),
+                   "date_time": datetime.now(), "book_id": session['book_id']})
+       db.commit()
+    return book(session['book_isbn'])
