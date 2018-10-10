@@ -1,0 +1,55 @@
+{% extends "layout.html" %}
+{% block title %} Book{% endblock %}
+{% block main %}
+    <div class="container">
+<!--
+        {% if session.search == 2 %}
+            <h1>Вибрано:.</h1>
+            <ul>
+                {% for book in listbooks %}
+                <li><a href="{{ url_for('book',isbn=book.isbn) }}">
+                    {{ book.id }} | {{ book.isbn }} | {{ book.title }} | {{ book.author }} | {{ book.yeahr }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+-->
+        <h2>Детальніше про книгу:</h2>
+        <ul>
+            <li>ISBN:   {{ book['isbn'] }}</li>
+            <li>Назва:  {{ book['title'] }}</li>
+            <li>Автор:  {{ book['author'] }}</li>
+            <li>Рік:    {{ book['year'] }}</li>
+        </ul>
+        <h2>Додатково з GoodReads:</h2>
+        <ul>
+            <li>Середній рейтинг: {{ book['average_score'] }}</li>
+            <li>Кількість оцінок: {{ book['review_count'] }}</li>
+        </ul>
+        {% if session['check_user'] %}
+            <h2>Опишіть свої враження:</h2>
+            <form action="/review_add" method="post">
+                <fieldset>
+                    <div class="form-group">
+                        <input autocomplete="off" autofocus class="form-control" name="review_text" placeholder="Input youre review." type="text" height="50x"/>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-default" type="submit">Submit</button>
+                    </div>
+                </fieldset>
+            </form>
+        {% endif %}
+        {% if reviews != Null %}
+            <h1>Відгуки:</h1>
+            <ol class="posts">
+                {% for review in reviews %}
+                    <li class="post">
+                        <div class="post-body">
+                            {{ review.content }}
+                        </div>
+                    </li>
+                {% endfor %}
+            </ol>
+        {% endif %}
+    </div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+{% block title %} Books{% endblock %}
+{% block main %}
+    <div class="container">
+        {% if session.search == 1 %}
+            <h1>Вкажіть параметри для пошуку:</h1>
+            <form action="{{ url_for('search') }}" method="post">
+                <fieldset>
+                    <div class="form-group">
+                        <input autocomplete="off" autofocus class="form-control" name="isbn" placeholder="Введіть ISBN" type="text" width="30px"/>
+                    </div>
+                    <div class="form-group">
+                        <input autocomplete="off" class="form-control" name="title" placeholder="Введіть назву книжки" type="text"/>
+                    </div>
+                    <div class="form-group">
+                        <input autocomplete="off" class="form-control" name="author" placeholder="Введіть автоа книги" type="text"/>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-default" type="submit">Пошук</button>
+                    </div>
+                </fieldset>
+            </form>
+        {% endif %}
+        {% if session.search == 2 %}
+            <h1> Вибрано:</h1>
+            <table>
+                <tr>
+                    <th>ISBN</th>
+                    <th>НАЗВА</th>
+                    <th>АВТОР</th>
+                    <th>ДЕТАЛІ</th>
+                </tr>
+                {% for book in listbooks %}
+                    <tr>
+                        <td>{{ book.isbn }}</td>
+                        <td>{{ book.title }}</td>
+                        <td>{{ book.author }}</td>
+                        <td><a href="{{ url_for('book',isbn=book.isbn) }}">click</a></td>
+                    </tr>
+                {% endfor %}
+            </table>
+        {% endif %}
+    </div>
+{% endblock %}
