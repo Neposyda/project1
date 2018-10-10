@@ -52,7 +52,7 @@ def login():
     #perev chy e user i
     if db.execute("SELECT * FROM users WHERE name= :name", {"name": session['username']}).rowcount == 0:
         #session['status_log'] = 1
-        session['status_reg'] = 1
+        session['status_reg'] = 0
         return registr()
     else:
         # loginymsa
@@ -61,7 +61,7 @@ def login():
         if db_user['password'] == session['password']:
             session['status_log'] = 3
             session['search'] = 0
-            session['user_id']=db_user['id']
+            session['user_id'] = db_user['id']
             return search()
         else:
             return render_template('login.html')
@@ -77,11 +77,11 @@ def logout():
 def registr():
     if session['status_reg'] == 0:
         session['status_reg'] = 1
-        return registr()
+        return render_template("registr.html", confirm="Користувач " + session['username']+" в базі відсутній.")
     #perev formu
     try:
         if not request.form.get('username'):
-            return render_template("registr.html", confirm="Заповніть поле з іменем коритувача")
+            return render_template("registr.html", confirm="Заповніть поле з іменем користувача")
         session['username'] = request.form.get('username')
         if not request.form.get('password'):
             return render_template("registr.html", username=session['username'], confirm='Введіть пароль')

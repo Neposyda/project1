@@ -1,3 +1,4 @@
-target
+.gitignore
+__pycahe__
 flask_session
 .idea
