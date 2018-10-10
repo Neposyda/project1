@@ -1,4 +1,4 @@
 .gitignore
-__pycahe__
+__pycache__
 flask_session
 .idea
