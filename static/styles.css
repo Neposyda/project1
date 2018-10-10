@@ -23,6 +23,11 @@
     color: #2e944b;
 }
 
+ul > li
+{
+    list-style-type: none;
+}
+
 main .form-control
 {
     /* center form controls */
